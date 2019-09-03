@@ -13,8 +13,10 @@ import top.ayang818.pfstudio.dto.GithubAccessTokenDTO;
 import top.ayang818.pfstudio.dto.GithubUserDTO;
 import top.ayang818.pfstudio.mapper.UserMapper;
 import top.ayang818.pfstudio.model.User;
+import top.ayang818.pfstudio.model.UserExample;
 import top.ayang818.pfstudio.provider.GithubProvider;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -36,7 +38,7 @@ public class AuthController {
     private UserMapper userMapper;
 
     @RequestMapping(value = "/api/login/github/callback", method = RequestMethod.GET)
-    public User githubAuth(@RequestParam("code") String code, @RequestParam("state")String state) {
+    public User githubAuth(@RequestParam("code") String code, @RequestParam("state") String state) {
         GithubAccessTokenDTO githubAccessTokenDTO = GithubAccessTokenDTO.builder().client_id(clientId)
                 .client_secret(clientSecret)
                 .code(code)
@@ -45,12 +47,22 @@ public class AuthController {
                 .build();
         String token = githubProvider.getAccessToken(githubAccessTokenDTO);
         GithubUserDTO githubUserDTO = githubProvider.getGithubUserDTO(token);
+
         if (githubUserDTO != null) {
+            UserExample userExample = new UserExample();
+            userExample.createCriteria().andGithubIdEqualTo(githubUserDTO.getId());
+            List<User> verifyUser = userMapper.selectByExample(userExample);
+            if (verifyUser.size() != 0) {
+                return verifyUser.get(0);
+            }
             User user = new User();
-            BeanUtils.copyProperties(githubUserDTO, user);
+            user.setName(githubUserDTO.getName());
+            user.setAvatarUrl(githubUserDTO.getAvatarUrl());
+            user.setBio(githubUserDTO.getBio());
             user.setGmtCreated(System.currentTimeMillis());
             user.setGmtModified(user.getGmtCreated());
             user.setToken(UUID.randomUUID().toString());
+            user.setGithubId(githubUserDTO.getId());
             userMapper.insert(user);
             return user;
         }
@@ -59,7 +71,7 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/api/login/qq/callback", method = RequestMethod.GET)
-    public Object qqAuth(@RequestParam("code")String code) {
+    public Object qqAuth(@RequestParam("code") String code) {
 
         return null;
     }

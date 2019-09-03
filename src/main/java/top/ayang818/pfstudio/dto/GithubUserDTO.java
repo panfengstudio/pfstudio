@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class GithubUserDTO {
-    private Long id;
+    private Integer id;
     private String avatarUrl;
     private String name;
     private String bio;

@@ -3,7 +3,7 @@ package top.ayang818.pfstudio.provider;
 import com.alibaba.fastjson.JSON;
 import okhttp3.*;
 import org.springframework.stereotype.Component;
-import top.ayang818.pfstudio.dto.AccessTokenDTO;
+import top.ayang818.pfstudio.dto.GithubAccessTokenDTO;
 import top.ayang818.pfstudio.dto.GithubUserDTO;
 import top.ayang818.pfstudio.util.OkHttpSingletonUtil;
 
@@ -13,13 +13,13 @@ import java.io.IOException;
 @Component
 public class GithubProvider {
 
-    public String getAccessToken(AccessTokenDTO accessTokenDTO) {
+    public String getAccessToken(GithubAccessTokenDTO githubAccessTokenDTO) {
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
         // 单例模式获取OkhttpClient对象
         OkHttpClient client = OkHttpSingletonUtil.getInstance();
 
-        RequestBody body = RequestBody.create(JSON, com.alibaba.fastjson.JSON.toJSONString(accessTokenDTO));
+        RequestBody body = RequestBody.create(JSON, com.alibaba.fastjson.JSON.toJSONString(githubAccessTokenDTO));
         Request request = new Request.Builder()
                 .url("https://github.com/login/oauth/access_token")
                 .post(body)

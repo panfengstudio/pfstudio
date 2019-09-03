@@ -1,0 +1,1 @@
+alter table user modify token varchar(256) null;

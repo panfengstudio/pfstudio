@@ -26,8 +26,6 @@ public class AuthController {
     @Value("${github.redirect_uri}")
     private String redirectUri;
 
-    @Value("${github.state}")
-    private String state;
 
     @RequestMapping(value = "/api/login/github/callback", method = RequestMethod.GET)
     public Object githubAuth(@RequestParam("code") String code, @RequestParam("state")String state) {

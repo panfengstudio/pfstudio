@@ -16,6 +16,7 @@ public class GithubProvider {
     public String getAccessToken(AccessTokenDTO accessTokenDTO) {
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
+        // 单例模式获取OkhttpClient对象
         OkHttpClient client = OkHttpSingletonUtil.getInstance();
 
         RequestBody body = RequestBody.create(JSON, com.alibaba.fastjson.JSON.toJSONString(accessTokenDTO));
@@ -35,6 +36,8 @@ public class GithubProvider {
     }
 
     public GithubUserDTO getGithubUserDTO(String token) {
+
+        // 单例模式获取OkhttpClient对象
         OkHttpClient client = OkHttpSingletonUtil.getInstance();
 
         Request request = new Request.Builder()

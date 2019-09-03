@@ -1,2 +1,4 @@
 # pfstudio
-工作室主站
+
+## 技术栈
+Spring Boot, Mybatis, Spring MVC , Mysql, Redis。

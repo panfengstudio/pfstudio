@@ -1,14 +1,12 @@
 package top.ayang818.pfstudio.controller;
 
 
-import com.fasterxml.jackson.databind.util.BeanUtil;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import top.ayang818.pfstudio.dto.GithubAccessTokenDTO;
 import top.ayang818.pfstudio.dto.GithubUserDTO;
 import top.ayang818.pfstudio.mapper.UserMapper;
@@ -19,7 +17,7 @@ import top.ayang818.pfstudio.provider.GithubProvider;
 import java.util.List;
 import java.util.UUID;
 
-@RestController
+@Controller
 public class AuthController {
 
     @Autowired
@@ -34,11 +32,14 @@ public class AuthController {
     @Value("${github.redirect_uri}")
     private String redirectUri;
 
+    @Value("${url.frontend.domain}")
+    private String domain;
+
     @Autowired
     private UserMapper userMapper;
 
-    @RequestMapping(value = "/api/login/github/callback", method = RequestMethod.GET)
-    public User githubAuth(@RequestParam("code") String code, @RequestParam("state") String state) {
+    @GetMapping("/githubcallback")
+    public String githubAuth(@RequestParam("code") String code, @RequestParam("state") String state, Model model) {
         GithubAccessTokenDTO githubAccessTokenDTO = GithubAccessTokenDTO.builder().client_id(clientId)
                 .client_secret(clientSecret)
                 .code(code)
@@ -53,7 +54,10 @@ public class AuthController {
             userExample.createCriteria().andGithubIdEqualTo(githubUserDTO.getId());
             List<User> verifyUser = userMapper.selectByExample(userExample);
             if (verifyUser.size() != 0) {
-                return verifyUser.get(0);
+                User user = verifyUser.get(0);
+                model.addAttribute("token", user.getToken());
+                model.addAttribute("domain", domain);
+                return "githubcallback";
             }
             User user = new User();
             user.setName(githubUserDTO.getName());
@@ -64,15 +68,19 @@ public class AuthController {
             user.setToken(UUID.randomUUID().toString());
             user.setGithubId(githubUserDTO.getId());
             userMapper.insert(user);
-            return user;
+            model.addAttribute("token", user.getToken());
+            model.addAttribute("domain", domain);
+            return "githubcallback";
         }
 
         return null;
     }
 
-    @RequestMapping(value = "/api/login/qq/callback", method = RequestMethod.GET)
+    @GetMapping("qqcallback")
     public Object qqAuth(@RequestParam("code") String code) {
 
         return null;
     }
+
+
 }

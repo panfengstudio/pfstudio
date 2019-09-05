@@ -17,10 +17,9 @@
         document.getElementById("egg").click();
         var token = [[${token}]];
         var domain = [[${domain}]];
-        var url = domain + "/" +  token;
-        console.log(url);
-        var targetWindow = window.open(url);
-        window.open("","_self").close()
+        var url = domain + "/?token=" +  token;
+        window.close();
+        window.open(url);
     }
 </script>
 </html>

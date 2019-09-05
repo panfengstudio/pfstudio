@@ -19,13 +19,13 @@ import java.util.List;
  **/
 
 @RestController
-public class userController {
+public class UserController {
     @Autowired
     private UserMapper userMapper;
 
     @ResponseBody
     @RequestMapping(value = "/api/users", method = RequestMethod.POST)
-    public Object selectUser(@RequestBody()ResTokenDTO resTokenDTO) {
+    public Object selectUser(@RequestBody() ResTokenDTO resTokenDTO) {
         String token = resTokenDTO.getToken();
         if (token == null) {
             return CustomizeErrorCode.NEVER_AUTHRIZED;

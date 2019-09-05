@@ -1,8 +1,10 @@
 package top.ayang818.pfstudio.exception;
 
 public enum CustomizeErrorCode implements ICustomizeErrorCode {
-    SUCCESS(200, "success"),
-    SERVER_ERROR(404, "server-error");
+    SUCCESS(200, "成功"),
+    SERVER_ERROR(404, "服务器错误"),
+    NEVER_AUTHRIZED(401, "没有权限，别搞事嗷！"),
+    NO_SUCH_USER(401, "没有这个用户，别乱写嗷！");
 
     private Integer code;
     private String messsge;

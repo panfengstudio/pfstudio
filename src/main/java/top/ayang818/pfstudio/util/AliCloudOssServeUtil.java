@@ -4,6 +4,7 @@ import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyuncs.OssAcsRequest;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,9 +14,19 @@ import java.net.URL;
 import java.util.Date;
 
 public class AliCloudOssServeUtil {
-    private static String endpoint = "https://oss-cn-beijing.aliyuncs.com";
-    private static String accessKeyId = "LTAInkF4MF6jf39Q";
-    private static String accessKeySecret = "KsMqIM26sVVzscTP6OAhjlzZxr4FWo";
+
+    @Value("${ali.ossendpoint}")
+    private static String getEndpoint;
+
+    @Value("${ali.ossaccesskeyid}")
+    private static String getAccessKeyId;
+
+    @Value("${ali.ossaccesskeyseret}")
+    private static String getAccessKeySecret;
+
+    private static String endpoint = getEndpoint;
+    private static String accessKeyId = getAccessKeyId;
+    private static String accessKeySecret = getAccessKeySecret;
 
     private static String bucketName = "upload-serve";
 

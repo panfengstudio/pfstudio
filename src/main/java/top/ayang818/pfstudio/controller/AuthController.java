@@ -68,7 +68,7 @@ public class AuthController {
             UserExample userExample = new UserExample();
             userExample.createCriteria().andGithubIdEqualTo(githubUserDTO.getId());
             List<User> verifyUser = userMapper.selectByExample(userExample);
-            if (verifyUser.size() != 0 && !verifyUser.get(0).getAvatarUrl().contains("github")) {
+            if (verifyUser.size() != 0) {
                 User user = verifyUser.get(0);
                 model.addAttribute("token", user.getToken());
                 model.addAttribute("domain", domain);
@@ -77,7 +77,7 @@ public class AuthController {
             // 第一次登陆，将Github的头像存到阿里云
             OkHttpClient okHttpClient = OkHttpSingletonUtil.getInstance();
             Request request = new Request.Builder()
-//                    .url(githubUserDTO.getAvatarUrl())
+                    //.url(githubUserDTO.getAvatarUrl())
                     .url(githubUserDTO.getAvatarUrl())
                     .build();
 

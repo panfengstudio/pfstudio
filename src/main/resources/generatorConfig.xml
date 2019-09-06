@@ -37,6 +37,9 @@
         <table schema="pfstudio" tableName="user" domainObjectName="User">
         </table>
 
+        <table schema="pfstudio" tableName="comment" domainObjectName="Comment">
+        </table>
+
         <!--        <table tableName="question" domainObjectName="Question"></table>-->
 
     </context>

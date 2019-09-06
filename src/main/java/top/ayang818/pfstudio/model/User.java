@@ -1,5 +1,7 @@
 package top.ayang818.pfstudio.model;
 
+import lombok.Builder;
+
 public class User {
     /**
      *

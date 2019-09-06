@@ -1,6 +1,10 @@
 package top.ayang818.pfstudio.controller;
 
 
+import com.aliyun.oss.OSS;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -13,7 +17,14 @@ import top.ayang818.pfstudio.mapper.UserMapper;
 import top.ayang818.pfstudio.model.User;
 import top.ayang818.pfstudio.model.UserExample;
 import top.ayang818.pfstudio.provider.GithubProvider;
+import top.ayang818.pfstudio.util.AliCloudOssServeUtil;
+import top.ayang818.pfstudio.util.OkHttpSingletonUtil;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.CacheRequest;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +45,9 @@ public class AuthController {
 
     @Value("${url.frontend.domain}")
     private String domain;
+
+    @Value("${ali.ossdir}")
+    private String filedir;
 
     @Autowired
     private UserMapper userMapper;
@@ -59,9 +73,23 @@ public class AuthController {
                 model.addAttribute("domain", domain);
                 return "githubcallback";
             }
+            OkHttpClient okHttpClient = OkHttpSingletonUtil.getInstance();
+            Request request = new Request.Builder()
+                    .url(githubUserDTO.getAvatarUrl())
+                    .build();
+            System.out.println(githubUserDTO.getAvatarUrl());
+            String avatarUrl = null;
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                AliCloudOssServeUtil ossServeUtil = AliCloudOssServeUtil.getInstance();
+                FileInputStream fileInputStream = (FileInputStream) response.body().byteStream();
+                ossServeUtil.uploadFileToOss(fileInputStream, filedir+githubUserDTO.getId());
+                avatarUrl = ossServeUtil.getUrl(filedir + githubUserDTO.getId());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             User user = new User();
             user.setName(githubUserDTO.getName());
-            user.setAvatarUrl(githubUserDTO.getAvatarUrl());
+            user.setAvatarUrl(avatarUrl != null ? avatarUrl : githubUserDTO.getAvatarUrl());
             user.setBio(githubUserDTO.getBio());
             user.setGmtCreated(System.currentTimeMillis());
             user.setGmtModified(user.getGmtCreated());

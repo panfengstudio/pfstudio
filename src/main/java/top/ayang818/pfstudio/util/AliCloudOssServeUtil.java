@@ -8,13 +8,14 @@ import com.aliyuncs.OssAcsRequest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
 
 public class AliCloudOssServeUtil {
     private static String endpoint = "https://oss-cn-beijing.aliyuncs.com";
-    private static String accessKeyId = "LTAI4FcconyC2qQUGgPy6Hx4";
-    private static String accessKeySecret = "P2IJThC2mmlKuIo3fkLdo8kecLUcFH";
+    private static String accessKeyId = "LTAInkF4MF6jf39Q";
+    private static String accessKeySecret = "KsMqIM26sVVzscTP6OAhjlzZxr4FWo";
 
     private static String bucketName = "upload-serve";
 
@@ -66,8 +67,16 @@ public class AliCloudOssServeUtil {
         }
     }
 
-    public void uploadFileToOss(FileInputStream fileInputStream, String imagePath) {
-        ossClient.putObject(bucketName, imagePath, fileInputStream);
+    public void uploadFileToOss(InputStream inputStream, String imagePath) {
+        ossClient.putObject(bucketName, imagePath, inputStream);
+        System.out.println("upload success!");
+    }
+
+    public void uploadImageToOss(InputStream inputStream, String imagePath) {
+        if (!imagePath.endsWith(".png") && !imagePath.endsWith(".jpg") && !imagePath.endsWith("jpeg")) {
+            imagePath += ".png";
+        }
+        ossClient.putObject(bucketName, imagePath, inputStream);
         System.out.println("upload success!");
     }
 

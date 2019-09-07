@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import top.ayang818.pfstudio.dto.CommentDTO;
 import top.ayang818.pfstudio.dto.CommentInputDTO;
 import top.ayang818.pfstudio.exception.CustomizeErrorCode;
+import top.ayang818.pfstudio.mapper.CommentExtMapper;
 import top.ayang818.pfstudio.mapper.CommentMapper;
 import top.ayang818.pfstudio.mapper.UserMapper;
 import top.ayang818.pfstudio.model.Comment;
@@ -35,6 +36,9 @@ public class CommentController {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private CommentExtMapper commentExtMapper;
 
     @RequestMapping(value = "/api/comments", method = RequestMethod.GET)
     public Object list(@RequestParam(value = "token", required = false) String token,
@@ -87,10 +91,20 @@ public class CommentController {
             return CustomizeErrorCode.NEVER_AUTHRIZED;
         }
         Comment comment = commentMapper.selectByPrimaryKey(id);
+        if (comment == null) {
+            return CustomizeErrorCode.NO_SUCH_COMMENT;
+        }
         if (comment.getCreator()!= users.get(0).getId()) {
             return CustomizeErrorCode.NEVER_AUTHRIZED;
         }
         int i = commentMapper.deleteByPrimaryKey(id);
         return CustomizeErrorCode.SUCCESS;
+    }
+
+    @RequestMapping(value = "/api/comments/count", method = RequestMethod.GET)
+    public Long countPage() {
+        Long dataNum = commentMapper.countByExample(new CommentExample());
+        Long pageNum = dataNum%10==0? dataNum/10 :dataNum/10+1;
+        return pageNum;
     }
 }

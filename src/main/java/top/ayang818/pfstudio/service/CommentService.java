@@ -27,7 +27,7 @@ public class CommentService {
         BeanUtils.copyProperties(comment, commentDTO);
         commentDTO.setUserMessage(user);
         commentDTO.setHasRight(false);
-        if (currentUser != null &&comment.getCreator().equals(currentUser.getId())) {
+        if (currentUser != null && comment.getCreator().equals(currentUser.getId())) {
             commentDTO.setHasRight(true);
         }
         return commentDTO;

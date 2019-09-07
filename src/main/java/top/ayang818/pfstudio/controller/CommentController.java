@@ -104,7 +104,7 @@ public class CommentController {
     @RequestMapping(value = "/api/comments/count", method = RequestMethod.GET)
     public Long countPage() {
         Long dataNum = commentMapper.countByExample(new CommentExample());
-        Long pageNum = dataNum/10+1;
+        Long pageNum = dataNum%10==0? dataNum/10 :dataNum/10+1;
         return pageNum;
     }
 }

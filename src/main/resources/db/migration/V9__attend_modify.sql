@@ -1,0 +1,1 @@
+alter table attend modify creator bigint null;

@@ -40,6 +40,9 @@
         <table schema="pfstudio" tableName="comment" domainObjectName="Comment">
         </table>
 
+        <table schema="pfstudio" tableName="attend" domainObjectName="Attend">
+        </table>
+
         <!--        <table tableName="question" domainObjectName="Question"></table>-->
 
     </context>

@@ -8,8 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import top.ayang818.pfstudio.dto.GithubAccessTokenDTO;
 import top.ayang818.pfstudio.dto.GithubUserDTO;
 import top.ayang818.pfstudio.mapper.UserMapper;
@@ -20,13 +19,12 @@ import top.ayang818.pfstudio.service.UserService;
 import top.ayang818.pfstudio.util.AliCloudOssServeUtil;
 import top.ayang818.pfstudio.util.OkHttpSingletonUtil;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
-@Controller
+@RestController
 public class AuthController {
 
     @Autowired
@@ -53,7 +51,7 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/githubcallback")
+    @RequestMapping(value = "/api/githubcallback", method = RequestMethod.GET)
     public String githubAuth(@RequestParam("code") String code, @RequestParam("state") String state, Model model) {
         GithubAccessTokenDTO githubAccessTokenDTO = GithubAccessTokenDTO.builder().client_id(clientId)
                 .client_secret(clientSecret)
@@ -62,22 +60,23 @@ public class AuthController {
                 .state(state)
                 .build();
         String token = githubProvider.getAccessToken(githubAccessTokenDTO);
+        if ("bad_verification_code".equals(token)) {
+            model.addAttribute("domain", domain);
+            return "error";
+        }
         GithubUserDTO githubUserDTO = githubProvider.getGithubUserDTO(token);
 
         if (githubUserDTO != null) {
+            System.out.println(githubUserDTO.getName());
             UserExample userExample = new UserExample();
             userExample.createCriteria().andGithubIdEqualTo(githubUserDTO.getId());
             List<User> verifyUser = userMapper.selectByExample(userExample);
             if (verifyUser.size() != 0) {
-                User user = verifyUser.get(0);
-                model.addAttribute("token", user.getToken());
-                model.addAttribute("domain", domain);
-                return "githubcallback";
+                return verifyUser.get(0).getToken();
             }
             // 第一次登陆，将Github的头像存到阿里云
             OkHttpClient okHttpClient = OkHttpSingletonUtil.getInstance();
             Request request = new Request.Builder()
-                    //.url(githubUserDTO.getAvatarUrl())
                     .url(githubUserDTO.getAvatarUrl())
                     .build();
 
@@ -86,7 +85,7 @@ public class AuthController {
                 AliCloudOssServeUtil ossServeUtil = AliCloudOssServeUtil.getInstance();
                 assert response.body() != null;
                 InputStream inputStream = response.body().byteStream();
-                ossServeUtil.uploadImageToOss(inputStream, filedir+githubUserDTO.getId());
+                ossServeUtil.uploadImageToOss(inputStream, filedir + githubUserDTO.getId());
                 avatarUrl = ossServeUtil.getUrl(filedir + githubUserDTO.getId() + ".png").split("[?]")[0];
             } catch (IOException e) {
                 e.printStackTrace();
@@ -100,15 +99,13 @@ public class AuthController {
             user.setToken(UUID.randomUUID().toString());
             user.setGithubId(githubUserDTO.getId());
             userService.insertOrUpdate(user);
-            model.addAttribute("token", user.getToken());
-            model.addAttribute("domain", domain);
-            return "githubcallback";
+            return user.getToken();
         }
 
         return null;
     }
 
-    @GetMapping("qqcallback")
+    @RequestMapping(value = "/api/qqcallback", method = RequestMethod.GET)
     public Object qqAuth(@RequestParam("code") String code) {
 
         return null;

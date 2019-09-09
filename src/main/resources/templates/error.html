@@ -8,18 +8,16 @@
     <title>Document</title>
 </head>
 <body>
-    <p id="egg"></p>
-    登陆中，请稍等...
+<p id="egg"></p>
+登陆失败，正在重定向
 </body>
 
 <script th:inline="javascript">
     window.onload = function () {
         document.getElementById("egg").click();
-        var token = [[${token}]];
         var domain = [[${domain}]];
-        var url = domain + "/?token=" +  token;
         window.close();
-        window.open(url);
+        window.open(domain);
     }
 </script>
 </html>

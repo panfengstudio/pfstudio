@@ -25,6 +25,7 @@ public class CommentService {
         User user = userMapper.selectByPrimaryKey(comment.getCreator());
         CommentDTO commentDTO = new CommentDTO();
         BeanUtils.copyProperties(comment, commentDTO);
+        user.setToken("NAN");
         commentDTO.setUserMessage(user);
         commentDTO.setHasRight(false);
         if (currentUser != null && comment.getCreator().equals(currentUser.getId())) {

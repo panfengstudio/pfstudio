@@ -130,9 +130,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>6.0.1</version>
                 <configuration>
-                    <url>jdbc:mysql://119.23.240.115/pfstudio</url>
+                    <url>jdbc:mysql://localhost:3306/pfstudio</url>
                     <user>root</user>
-                    <password>1004210191</password>
+                    <password>123</password>
                 </configuration>
                 <dependencies>
                     <dependency>

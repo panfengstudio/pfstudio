@@ -1,9 +1,7 @@
 package top.ayang818.pfstudio.util;
 
 import com.aliyun.oss.OSS;
-import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
-import com.aliyuncs.OssAcsRequest;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
@@ -13,36 +11,25 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
 
+
 public class AliCloudOssServeUtil {
-
-    @Value("${ali.ossendpoint}")
-    private static String getEndpoint;
-
-    @Value("${ali.ossaccesskeyid}")
-    private static String getAccessKeyId;
-
-    @Value("${ali.ossaccesskeyseret}")
-    private static String getAccessKeySecret;
-
-    private static String endpoint = getEndpoint;
-    private static String accessKeyId = getAccessKeyId;
-    private static String accessKeySecret = getAccessKeySecret;
 
     private static String bucketName = "upload-serve";
 
     private static  AliCloudOssServeUtil aliCloudOssServeUtil;
     private static OSS ossClient;
 
-    private AliCloudOssServeUtil() {
+    private AliCloudOssServeUtil(String endpoint, String accessKeyId, String accessKeySecret) {
         ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
     }
 
     // 使用单例模式user，创建阿里云的oss连接
-    public static AliCloudOssServeUtil getInstance() {
+    public static AliCloudOssServeUtil getInstance(String endpoint, String accessKeyId,
+            String accessKeySecret) {
         if (ossClient == null) {
             synchronized (AliCloudOssServeUtil.class) {
                 if (aliCloudOssServeUtil == null ) {
-                    aliCloudOssServeUtil = new AliCloudOssServeUtil();
+                    aliCloudOssServeUtil = new AliCloudOssServeUtil(endpoint, accessKeyId, accessKeySecret);
                     return aliCloudOssServeUtil;
                 }
             }

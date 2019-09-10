@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import top.ayang818.pfstudio.dto.GithubAccessTokenDTO;
 import top.ayang818.pfstudio.dto.GithubUserDTO;
+import top.ayang818.pfstudio.exception.CustomizeErrorCode;
 import top.ayang818.pfstudio.mapper.UserMapper;
 import top.ayang818.pfstudio.model.User;
 import top.ayang818.pfstudio.model.UserExample;
@@ -45,6 +46,10 @@ public class AuthController {
     @Value("${ali.ossdir}")
     private String filedir;
 
+    @Value("${ali.ossendpoint}") String endpoint;
+    @Value("${ali.ossaccesskeyid}") String accessKeyId;
+    @Value("${ali.ossaccesskeysecret}") String accessKeySecret;
+
     @Autowired
     private UserMapper userMapper;
 
@@ -52,7 +57,7 @@ public class AuthController {
     private UserService userService;
 
     @RequestMapping(value = "/api/githubcallback", method = RequestMethod.GET)
-    public String githubAuth(@RequestParam("code") String code, @RequestParam("state") String state, Model model) {
+    public Object githubAuth(@RequestParam("code") String code, @RequestParam("state") String state) {
         GithubAccessTokenDTO githubAccessTokenDTO = GithubAccessTokenDTO.builder().client_id(clientId)
                 .client_secret(clientSecret)
                 .code(code)
@@ -61,20 +66,21 @@ public class AuthController {
                 .build();
         String token = githubProvider.getAccessToken(githubAccessTokenDTO);
         if ("bad_verification_code".equals(token)) {
-            model.addAttribute("domain", domain);
-            return "error";
+            return CustomizeErrorCode.NEVER_AUTHRIZED;
         }
         GithubUserDTO githubUserDTO = githubProvider.getGithubUserDTO(token);
-
+        List<User> verifyUser;
+        User insertedUserOrUpdateUser;
+        // 已登录过，直接返回数据库中内容
         if (githubUserDTO != null) {
             System.out.println(githubUserDTO.getName());
             UserExample userExample = new UserExample();
             userExample.createCriteria().andGithubIdEqualTo(githubUserDTO.getId());
-            List<User> verifyUser = userMapper.selectByExample(userExample);
-            if (verifyUser.size() != 0) {
+            verifyUser = userMapper.selectByExample(userExample);
+            if (verifyUser.size() != 0 && !verifyUser.get(0).getAvatarUrl().contains("github")) {
                 return verifyUser.get(0).getToken();
             }
-            // 第一次登陆，将Github的头像存到阿里云
+            // 第一次登陆，或头像源还是github的用户，将Github的头像存到阿里云
             OkHttpClient okHttpClient = OkHttpSingletonUtil.getInstance();
             Request request = new Request.Builder()
                     .url(githubUserDTO.getAvatarUrl())
@@ -82,13 +88,21 @@ public class AuthController {
 
             String avatarUrl = null;
             try (Response response = okHttpClient.newCall(request).execute()) {
-                AliCloudOssServeUtil ossServeUtil = AliCloudOssServeUtil.getInstance();
+                AliCloudOssServeUtil ossServeUtil = AliCloudOssServeUtil.getInstance(endpoint, accessKeyId, accessKeySecret);
                 assert response.body() != null;
                 InputStream inputStream = response.body().byteStream();
                 ossServeUtil.uploadImageToOss(inputStream, filedir + githubUserDTO.getId());
                 avatarUrl = ossServeUtil.getUrl(filedir + githubUserDTO.getId() + ".png").split("[?]")[0];
-            } catch (IOException e) {
+                System.out.println("avatarurl is "+ avatarUrl);
+            } catch (Exception e) {
                 e.printStackTrace();
+            }
+            if (verifyUser.size() != 0) {
+                insertedUserOrUpdateUser = verifyUser.get(0);
+                insertedUserOrUpdateUser.setGmtModified(System.currentTimeMillis());
+                insertedUserOrUpdateUser.setAvatarUrl(avatarUrl != null ? avatarUrl : githubUserDTO.getAvatarUrl());
+                userService.insertOrUpdate(insertedUserOrUpdateUser);
+                return insertedUserOrUpdateUser.getToken();
             }
             User user = new User();
             user.setName(githubUserDTO.getName());
@@ -102,7 +116,7 @@ public class AuthController {
             return user.getToken();
         }
 
-        return null;
+        return CustomizeErrorCode.SERVER_ERROR;
     }
 
     @RequestMapping(value = "/api/qqcallback", method = RequestMethod.GET)
